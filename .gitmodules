@@ -1,3 +1,6 @@
 [submodule "axxegro"]
 	path = axxegro
 	url = https://github.com/311Volt/axxegro.git
+[submodule "reflect"]
+	path = reflect
+	url = https://github.com/qlibs/reflect
