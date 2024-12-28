@@ -3,16 +3,29 @@
 #include <entt/entt.hpp>
 #include <assimp/Importer.hpp>
 #include <bullet/btBulletDynamicsCommon.h>
+#include <lpg/lpg.hpp>
 
 
 void say_hello(){
 
     btDefaultCollisionConfiguration btConf;
-    entt::registry registry;
+    entt::registry entt_registry;
     Assimp::Importer importer;
 
-    printf("Hello, from lpg_engine!");
+    printf("Hello, from lpg_engine!\n");
 
+    lpg::Registry registry;
+    struct {
+        struct {
+            al::Vec2i resolution = {800, 600};
+            int depth = 32;
+            float refreshRate = 60.0;
+        } videomode;
+        bool cheats = false;
+        std::string nickname = "Player";
+    } ex;
+    registry.registerValue("root", ex);
+    registry.dump(std::cout);
 
 
     std::vector<int> divisions;
@@ -37,8 +50,8 @@ void say_hello(){
             i *= 2;
         }
     }
-    printf("divisions: %d\n\n", divisions.size());
-    for (auto& k: divisions) {
-        printf("\tTimerDiv%04d_%.2f\n", k, std::max(360.0 / k, k / 360.0));
-    }
+    // printf("divisions: %d\n\n", divisions.size());
+    // for (auto& k: divisions) {
+    //     printf("\tTimerDiv%04d_%.2f\n", k, std::max(360.0 / k, k / 360.0));
+    // }
 }

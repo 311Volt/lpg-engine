@@ -13,6 +13,9 @@
 
 #include <axxegro/com/math/math.hpp>
 
+#include "axxegro/addons/audio/AudioCommon.hpp"
+#include "axxegro/addons/audio/AudioCommon.hpp"
+
 #ifdef _MSC_VER
 #define LPG_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #else
@@ -58,6 +61,9 @@ namespace lpg {
             int64_t,
             float,
             double,
+            al::Vec2i,
+            al::Vec3i,
+            al::Vec4i,
             al::Vec2f,
             al::Vec3f,
             al::Vec4f,
@@ -67,6 +73,10 @@ namespace lpg {
 
     using DataUnit = typename detail::DataUnitTypes::DataUnitType;
     using PtrToDataUnit = typename detail::DataUnitTypes::PtrToDataUnitType;
+
+    [[nodiscard]] std::string DataUnitToStr(const DataUnit& dataUnit);
+    std::string DataUnitToStr(PtrToDataUnit dataUnit);
+//     DataUnit StrToDataUnit(const std::string_view data);
 
 
 
@@ -195,7 +205,7 @@ namespace lpg {
         }
 
         template<int N, typename T>
-        inline constexpr auto get(T&& value) {
+        inline constexpr decltype(auto) get(T&& value) noexcept {
             return base_refl::get<detail::idx_reduced_to_real<N, T>()>(value);
         }
 
@@ -224,22 +234,20 @@ namespace lpg {
             return std::get<A>(member_attr_list<N, T>());
         }
 
+
+        template<typename T, typename Fn>
+        inline constexpr void for_each_decl(Fn&& fn) {
+            reflect::for_each<T>([&](auto I) {
+                if constexpr (not detail::is_member_attr_list<I, T>()) {
+                    std::integral_constant<int, detail::idx_real_to_reduced<I, T>()> I1;
+                    fn(I1);
+                }
+            });
+        }
+
+
+
     } //namespace refl
-
-    struct bruh {
-        LPG_ATTR(MinValue{40}, MaxValue{90})
-        int xd;
-
-        int xdd;
-    };
-
-    inline void xDDDD() {
-        static_assert(refl::num_data_members<bruh>() == 2);
-        static_assert(refl::has_attributes<0, bruh>() == true);
-        static_assert(refl::has_attributes<1, bruh>() == false);
-        static_assert(refl::member_attr<MinValue, 0, bruh>().val == 40);
-        static_assert(refl::member_attr<MaxValue, 0, bruh>().val == 90);
-    }
 
 
 } // lpg
