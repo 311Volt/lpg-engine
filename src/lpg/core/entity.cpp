@@ -3,3 +3,4 @@
 //
 
 #include "entity.hpp"
+#include "entity_codegen.hpp"

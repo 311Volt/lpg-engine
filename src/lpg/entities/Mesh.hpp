@@ -11,8 +11,8 @@
 
 namespace lpg {
 
-    struct MeshEntity {
-        AssetPath<AssetType::Model> path;
+    struct MeshEntity: BaseEntity {
+        const AssetPath<AssetType::Model> path;
     };
 
 }

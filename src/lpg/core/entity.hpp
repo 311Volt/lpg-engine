@@ -6,49 +6,70 @@
 #define LPG_ENGINE_ENTITY_HPP
 
 #include <memory>
+#include <array>
 #include <axxegro/com/math/math.hpp>
+
+#include "data.hpp"
 
 namespace lpg {
 
-    struct EntityReference {
+
+
+    template<typename T>
+    concept Entity = std::is_aggregate_v<T>;
+
+
+    struct EntityVT {
+
+    };
+
+    struct EntityGroupVT {
+
+    };
+
+    template<Entity TEntity>
+    struct EntityQueryResult {
+        std::vector<std::span<TEntity>> results;
+    };
+
+    struct AnyEntityRef {
         int32_t id;
         int32_t version;
     };
 
+    inline constexpr AnyEntityRef NullAnyEntityRef = {.id = 0, .version = 0};
 
-    class EntityInfo {
-    public:
+    template<Entity TEntity>
+    struct Ref {
+        using IsEntityReference = void;
+        using EntityType = TEntity;
+
+        int32_t id = 0;
+        int32_t version = 0;
+    };
+
+    template<Entity TEntity>
+    struct Managed {
+        using IsManagedComponent = void;
+        using EntityType = TEntity;
+
+        int32_t id = 0;
+        int32_t version = 0;
+    };
+
+    struct BaseGameObject {
+        int32_t id;
+
+
+        LPG_ATTR(DoNotSerialize{})
+        void* ptrWorld;
+
+        std::array<float, 16> transform;
+        std::array<float, 16> localTransform;
         std::string name;
     };
 
-    class BaseEntityHandle {
-    public:
-        virtual ~BaseEntityHandle() = default;
 
-        virtual void update(double deltaTime) = 0;
-        virtual void render() = 0;
-        //getProperties()
-    };
-
-    template<typename TEntity>
-    class EntityHandle : public BaseEntityHandle {
-    public:
-
-        template<typename... Args>
-        explicit EntityHandle(Args&&... args) {
-            entity = std::make_unique<TEntity>(args...);
-        }
-
-        void update(double deltaTime) override {
-            entity->update(deltaTime);
-        }
-
-        void render() override {
-            entity->render();
-        }
-    private:
-        std::unique_ptr<TEntity> entity;
-    };
 }
 
 

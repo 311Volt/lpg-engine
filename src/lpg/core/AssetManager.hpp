@@ -7,9 +7,12 @@
 
 
 
-class AssetManager {
+namespace lpg {
 
-};
+
+    
+
+}
 
 
 

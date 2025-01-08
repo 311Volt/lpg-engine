@@ -1,5 +1,5 @@
 #include "Character.hpp"
 #include "Mesh.hpp"
-#include "Terrain.hpp"
+#include "PerlinNoiseTerrain.hpp"
 #include "PointLight.hpp"
 #include "DirectionalLight.hpp"

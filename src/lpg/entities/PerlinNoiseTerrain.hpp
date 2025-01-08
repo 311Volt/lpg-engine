@@ -9,8 +9,11 @@
 
 namespace lpg {
 
-    struct TerrainComponent {
-        std::string source;
+    struct PerlinNoiseTerrain: BaseEntity {
+
+        uint32_t seed;
+
+
 
     };
 

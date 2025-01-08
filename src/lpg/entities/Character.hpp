@@ -9,7 +9,7 @@
 
 namespace lpg {
 
-    struct Character {
+    struct Character: BaseEntity {
         al::Vec3f pos;
         al::Vec3f size;
         al::Vec3f cam_offset;

@@ -13,8 +13,6 @@
 
 #include <axxegro/com/math/math.hpp>
 
-#include "axxegro/addons/audio/AudioCommon.hpp"
-#include "axxegro/addons/audio/AudioCommon.hpp"
 
 #ifdef _MSC_VER
 #define LPG_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
@@ -37,7 +35,8 @@ namespace lpg {
         SFX,
         Music,
         Script,
-        Font
+        Font,
+        Blob
     };
 
     template<AssetType TPAssetType>
@@ -76,11 +75,15 @@ namespace lpg {
 
     [[nodiscard]] std::string DataUnitToStr(const DataUnit& dataUnit);
     std::string DataUnitToStr(PtrToDataUnit dataUnit);
-//     DataUnit StrToDataUnit(const std::string_view data);
+     // DataUnit StrToDataUnit(const std::string_view data);
 
 
 
     inline namespace attr {
+
+        struct IsComponent {};
+        struct DoNotSerialize {};
+
         struct MinValue {double val;};
         struct MaxValue {double val;};
         struct HelpText {std::string text;};
@@ -156,6 +159,7 @@ namespace lpg {
                 return N - num_attributes_until<N, T>();
             }
 
+            //TODO binary search here
             template<int N, typename T, int X>
                 requires (X >= 0)
             inline constexpr int idx_reduced_to_real_impl() {
@@ -232,6 +236,11 @@ namespace lpg {
         template<typename A, int N, typename T>
         inline constexpr auto member_attr() {
             return std::get<A>(member_attr_list<N, T>());
+        }
+
+        template<typename A, int N, typename T>
+        inline constexpr bool has_member_attr() {
+            return requires {std::get<A>(member_attr_list<N, T>());};
         }
 
 

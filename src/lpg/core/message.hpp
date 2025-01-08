@@ -6,11 +6,25 @@
 #define LPG_ENGINE_MESSAGE_HPP
 
 
+namespace lpg {
 
-class message {
+    struct PostSpawnMessage {
 
-};
+    };
 
+    struct PreKillMessage {
+
+    };
+
+    struct UpdateMessage {
+        double deltaTime;
+    };
+
+    struct TestMessage {
+        const double a;
+    };
+
+}
 
 
 #endif //MESSAGE_HPP

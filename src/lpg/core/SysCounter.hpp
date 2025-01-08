@@ -2,11 +2,10 @@
 // Created by volt on 12/26/2024.
 //
 
-#ifndef LPG_ENGINE_SYSTEMMANAGER_HPP
-#define LPG_ENGINE_SYSTEMMANAGER_HPP
+#ifndef LPG_ENGINE_SYSTEMCOUNTER_HPP
+#define LPG_ENGINE_SYSTEMCOUNTER_HPP
 
 #include <reflect>
-#include <charconv>
 
 namespace lpg {
 
@@ -42,11 +41,20 @@ namespace lpg {
     static_assert(SysFreqToDivision(SysFreq::Div0029_12Hz41) == 29);
     static_assert(SysFreqToDivision(SysFreq::Div8201_22sec78) == 8201);
 
-    class SystemManager {
+    class SystemCounters {
     public:
 
+
+
+
     private:
+
         std::array<int, std::to_underlying(SysFreq::MAX)> counters {};
+        void advanceCounters() {
+            for (int i=0; i<counters.size(); ++i) {
+                counters[i] = (counters[i] + 1) % SysFreqToDivision(static_cast<SysFreq>(i));
+            }
+        }
     };
 
 
@@ -55,4 +63,4 @@ namespace lpg {
 
 
 
-#endif //LPG_ENGINE_SYSTEMMANAGER_HPP
+#endif //LPG_ENGINE_SYSTEMCOUNTER_HPP
