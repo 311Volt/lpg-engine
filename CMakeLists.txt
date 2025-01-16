@@ -12,12 +12,16 @@ if (NOT DEFINED LPG_ENGINE_MASTER_PROJECT)
     endif ()
 endif ()
 
-file(GLOB_RECURSE LPG_ENGINE_SOURCES "src/*.cpp") 
+file(GLOB_RECURSE LPG_ENGINE_SOURCES "src/*.cpp" "src/*.hpp")
 add_library(lpg_engine ${LPG_ENGINE_SOURCES})
 target_include_directories(lpg_engine PUBLIC "src")
 
 find_package(Bullet REQUIRED)
-target_include_directories(lpg_engine PUBLIC ${BULLET_INCLUDE_DIRS} PUBLIC "reflect")
+target_include_directories(lpg_engine
+        PUBLIC ${BULLET_INCLUDE_DIRS}
+        PUBLIC "reflect"
+        PUBLIC "mph"
+)
 target_link_libraries(lpg_engine PUBLIC ${BULLET_LIBRARIES})
 
 find_package(entt REQUIRED)

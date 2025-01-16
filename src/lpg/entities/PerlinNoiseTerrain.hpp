@@ -9,10 +9,12 @@
 
 namespace lpg {
 
-    struct PerlinNoiseTerrain: BaseEntity {
+    struct PerlinNoiseTerrain {
 
-        uint32_t seed;
+        al::Vec3f position{}, scale{};
+        uint32_t seed {};
 
+        int numOctaves = 8;
 
 
     };

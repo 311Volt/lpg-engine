@@ -122,6 +122,12 @@ namespace lpg {
          * which would solve the problem -- TODO try it once this incompatibility becomes an issue
          */
 
+        template<auto TPValue>
+        struct TypeTag {
+            using LPGEngineTypeTag = void;
+            static constexpr auto Value = TPValue;
+        };
+
         template<auto... TPValues>
         struct AttributeList {
             using LPGEngineAttributeTag = void;
@@ -138,28 +144,42 @@ namespace lpg {
             }
 
             template<int N, typename T>
+            inline constexpr bool is_member_type_tag() {
+                return requires{typename base_refl::member_type<N, T>::LPGEngineTypeTag;};
+            }
+
+            template<int N, typename T>
+            inline constexpr bool is_member_data() {
+                return not (is_member_attr_list<N, T>() || is_member_type_tag<N, T>());
+            }
+
+            template<int N, typename T>
+            inline constexpr bool is_member_metadata() {
+                return not is_member_data<N, T>();
+            }
+
+            template<int N, typename T>
             using real_member_type = std::remove_cvref_t<decltype(reflect::get<N, T>(std::declval<T>()))>;
 
             template<int N, typename T>
-            inline constexpr bool num_attributes_until() {
+            inline constexpr int num_metadata_members_until() {
                 if constexpr (N < 0) {
                     return 0;
                 } else {
-                    return is_member_attr_list<N, T>() + num_attributes_until<N-1, T>();
+                    return is_member_metadata<N, T>() + num_metadata_members_until<N-1, T>();
                 }
             }
 
             template<typename T>
             inline constexpr auto num_non_attr_members() {
-                return reflect::size<T>() - num_attributes_until<reflect::size<T>() - 1, T>();
+                return reflect::size<T>() - num_metadata_members_until<reflect::size<T>() - 1, T>();
             }
 
             template<int N, typename T>
             inline constexpr int idx_real_to_reduced() {
-                return N - num_attributes_until<N, T>();
+                return N - num_metadata_members_until<N, T>();
             }
 
-            //TODO binary search here
             template<int N, typename T, int X>
                 requires (X >= 0)
             inline constexpr int idx_reduced_to_real_impl() {
@@ -174,6 +194,18 @@ namespace lpg {
                 requires (N < num_non_attr_members<T>())
             inline constexpr int idx_reduced_to_real() {
                 return idx_reduced_to_real_impl<N, T, reflect::size<T>()-1>();
+            }
+
+            template<typename T, int X>
+            inline constexpr decltype(auto) all_type_tags_impl(auto&& tpl) {
+                if constexpr (X >= reflect::size<T>()) {
+                    return std::tuple{std::forward<decltype(tpl)>(tpl)};
+                }
+                else if constexpr(detail::is_member_type_tag<X, T>()) {
+                    return std::tuple_cat(tpl, std::tuple{reflect::member_type<X, T>::Value}, all_type_tags_impl<T, X+1>(std::tuple{}));
+                } else {
+                    return std::tuple_cat(tpl, all_type_tags_impl<T, X+1>(std::tuple{}));
+                }
             }
 
         } //namespace detail
@@ -206,6 +238,17 @@ namespace lpg {
         template<int N, typename T>
         inline constexpr auto member_name(T&&) {
             return member_name<N, T>();
+        }
+
+
+        template<int N, typename T>
+        inline constexpr auto member_offset() {
+            return base_refl::offset_of<detail::idx_reduced_to_real<N, T>(), T>();
+        }
+
+        template<int N, typename T>
+        inline constexpr auto member_offset(T&&) {
+            return member_offset<N, T>();
         }
 
         template<int N, typename T>
@@ -247,17 +290,21 @@ namespace lpg {
         template<typename T, typename Fn>
         inline constexpr void for_each_decl(Fn&& fn) {
             reflect::for_each<T>([&](auto I) {
-                if constexpr (not detail::is_member_attr_list<I, T>()) {
+                if constexpr (detail::is_member_data<I, T>()) {
                     std::integral_constant<int, detail::idx_real_to_reduced<I, T>()> I1;
                     fn(I1);
                 }
             });
         }
 
+        template<typename T>
+        inline constexpr auto all_type_tags() {
+            return detail::all_type_tags_impl<T, 0>(std::tuple{});
+        }
+
 
 
     } //namespace refl
-
 
 } // lpg
 

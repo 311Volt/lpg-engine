@@ -5,6 +5,9 @@
 #include <bullet/btBulletDynamicsCommon.h>
 #include <lpg/lpg.hpp>
 
+#include <lpg/util/strided_span.hpp>
+
+#include <format>
 
 void say_hello(){
 
@@ -13,6 +16,18 @@ void say_hello(){
     Assimp::Importer importer;
 
     printf("Hello, from lpg_engine!\n");
+
+    std::vector<std::byte> data(1024);
+    struct test1 {int a, b;};
+    int stride = sizeof(test1) + 7;
+    for (int i=0; i<60; i++) {
+        std::construct_at(reinterpret_cast<test1*>(&data[i*stride]), test1{i, 2*i});
+    }
+    lpg::StridedSpan<test1> span(data.data(), 60, stride);
+    for (auto& k: span) {
+        std::cout << std::format("{}, {}\t", k.a, k.b);
+    }
+    return;
 
     lpg::Registry registry;
     struct {

@@ -8,7 +8,7 @@
 #include "data.hpp"
 #include "entity.hpp"
 #include "message.hpp"
-#include "SystemManager.hpp"
+#include "Registry.hpp"
 #include "AssetManager.hpp"
 #include "World.hpp"
 

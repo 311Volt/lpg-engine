@@ -8,38 +8,29 @@
 #include <stdint.h>
 #include <string>
 #include <any>
+#include <string_view>
 #include <reflect>
 #include "SysCounter.hpp"
+#include "entity.hpp"
 
 namespace lpg {
 
-
-    struct EntityTypeDecl {
-        int32_t id;
-        std::string name;
-        const std::type_info& type;
-    };
-
-    class World;
-
-    struct SystemDecl {
-        int32_t id;
-        std::string name;
-        std::string regNamespace;
-        SysFreq trigger;
-        void (callback*)(World*);
-    };
-
-
-
-
+    namespace detail {
+        struct ReserveEntityResult {
+            void* entity;
+            int32_t descriptor;
+        };
+    }
 
 
     class World {
     public:
 
         template<typename T>
-        void registerEntityType() {
+        void registerEntityType(const EntityInterface& entityInterface) {
+
+            //make sure bases are registered
+            //save entity interface
 
         }
 
@@ -49,27 +40,50 @@ namespace lpg {
         }
 
         template<typename TEntity>
-        Ref<TEntity> spawnEntity(const TEntity& entity) {
-            refl::for_each_decl<TEntity>([](auto I) {
+        Ref<TEntity> spawnEntity(auto&&... args) {
+            int32_t entTypeId = getEntityTypeId(reflect::type_name<TEntity>());
+            auto result = reserveEntity(entTypeId);
+            TEntity* ent = static_cast<TEntity*>(result.entity);
+            std::construct_at(ent, std::forward<decltype(args)>(args)...);
 
-            });
+            //TODO create pages for managed components
+            //TODO recursively spawn managed components
+
+            return Ref<TEntity>{
+                .id = result.id,
+                .version = getCurVersionNumOf(result.id)
+            };
         }
 
         template<typename TEntity>
-        std::vector<TEntity*> queryEntity(auto&&... predicates) {
-            int entType = entityTypeNames_.at(refl::type_name<TEntity>());
-            std::vector<TEntity*> entities;
+        Ref<TEntity> despawnEntity() {
+
+            //recursively destroy managed components
+            //destroy entity
+
+        }
+
+        // derefEntities(EntityRange)
+
+        template<typename TEntity>
+        std::vector<TEntity*> query(auto&&... predicates) {
 
         }
 
         template<typename TEntity>
-        auto&& getEntity(this auto&& self, Ref<TEntity> entity) {
+        auto&& ent(this auto&& self, Ref<TEntity> entity) {
 
         }
 
 
 
     private:
+
+        detail::ReserveEntityResult reserveEntity(int32_t entTypeId);
+        int32_t getEntityTypeId(std::string_view name);
+        int32_t getCurVersionNumOf(int32_t entId);
+
+
 
         std::any impl_;
     };
