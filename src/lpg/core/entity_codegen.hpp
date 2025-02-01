@@ -23,11 +23,7 @@
 namespace lpg {
 
     namespace detail {
-        struct EntityEmbeddedComponentMetadata {
-            std::string name;
-            std::type_index type;
-            int offset;
-        };
+
 
 #define LPG_DATA_MEMBER_OR_DEFAULT(Var, MemberName, Default, ...) \
     [&](){ \
@@ -38,21 +34,22 @@ namespace lpg {
     }()
 
         template<typename TEntity>
-        inline std::vector<EntityEmbeddedComponentMetadata> GetEntityEmbeddedComponentsMetadata(int baseOffset = 0) {
-            std::vector<EntityEmbeddedComponentMetadata> result;
+        inline std::vector<ComponentInfo> GetEntityEmbeddedComponentsInfo(int baseOffset = 0) {
+            std::vector<ComponentInfo> result;
 
             refl::for_each_decl<TEntity>([&](auto I) {
                 using FieldType = refl::member_type<I, TEntity>;
 
                 if constexpr(refl::has_member_attr<IsComponent, I, TEntity>() || requires{typename FieldType::IsEntity;}) {
                     int fieldOffset = baseOffset + refl::member_offset<I, TEntity>();
-                    result.push_back({
+                    result.push_back(ComponentInfo {
                         .name = refl::member_name<I, TEntity>(),
-                        .type = std::type_index(typeid(FieldType)),
-                        .offset = baseOffset + fieldOffset
+                        .offset = fieldOffset,
+                        .position = I,
+                        .entityTypeId = GetEntityTypeId<TEntity>()
                     });
 
-                    auto subResult = GetEntityEmbeddedComponentsMetadata<FieldType>(fieldOffset);
+                    auto subResult = GetEntityEmbeddedComponentsInfo<FieldType>(fieldOffset);
                     result.insert(result.end(), subResult.begin(), subResult.end());
                 }
 
@@ -129,8 +126,14 @@ namespace lpg {
     inline EntityInterface CreateEntityInterface(MessageRegistry& registry) {
         EntityInterface result {};
 
+        result.name = reflect::type_name<TEntity>();
+
         result.entitySize = sizeof(TEntity);
         result.entityAlign = alignof(TEntity);
+
+        result.embeddedComponents = detail::GetEntityEmbeddedComponentsInfo<TEntity>();
+
+        //TODO managed components
 
         result.destroy = [](void* entity) {
             TEntity* entityPtr = static_cast<TEntity*>(entity);
@@ -181,6 +184,17 @@ namespace lpg {
             return LPG_DATA_MEMBER_OR_DEFAULT(*entityPtr, id, -1);
         };
 
+        result.accumulateTransform = [](void* entity, al::Transform& transform) {
+            TEntity* entityPtr = static_cast<TEntity*>(entity);
+            detail::EntApplyTransform(*entityPtr, transform);
+        };
+
+        result.accumulateLocalTransform = [](void* entity, al::Transform& transform) {
+            TEntity* entityPtr = static_cast<TEntity*>(entity);
+            detail::EntApplyLocalTransform(*entityPtr, transform);
+        };
+
+
         std::apply([&](auto&&... tpl) {
             ([&]<typename T>(T&&) {
                 using ArgT = std::remove_cvref_t<T>;
@@ -190,18 +204,18 @@ namespace lpg {
                         registry.registerMessageType<MessageType>();
                     }
                     int messageTypeId = registry.getMessageTypeId<MessageType>();
-                    if (result.sendMessage.size() <= messageTypeId) {
-                        result.sendMessage.resize(messageTypeId + 1, nullptr);
-                        result.sendMessageToMany.resize(messageTypeId + 1, nullptr);
-                        result.sendMessageToManyContiguous.resize(messageTypeId + 1, nullptr);
-                    }
                     if (result.sendMessage[messageTypeId] != nullptr) {
                         throw std::runtime_error(
-                            "LPG_MESSAGE_HANDLER must appear exactly once for each entity type, however, a duplicate was detected for "
+                            "LPG_MESSAGE_HANDLER must appear exactly once for each message type, however, a duplicate was detected for "
                             + std::string(reflect::type_name<MessageType>())
                             + " when generating code for the entity "
                             + std::string(reflect::type_name<TEntity>())
                         );
+                    }
+                    if (result.sendMessage.size() <= messageTypeId) {
+                        result.sendMessage.resize(messageTypeId + 1, nullptr);
+                        result.sendMessageToMany.resize(messageTypeId + 1, nullptr);
+                        result.sendMessageToManyContiguous.resize(messageTypeId + 1, nullptr);
                     }
                     result.sendMessage[messageTypeId] = [](void* vpMsg, void* vpEnt) {
                         TEntity* entity = static_cast<TEntity*>(vpEnt);

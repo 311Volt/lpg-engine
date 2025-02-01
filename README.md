@@ -8,12 +8,12 @@ WIP. The overall architecture concept is mostly complete and coding has begun.
 
 ## Goals
 
-This engine is meant to power an unnanounced game that I'm developing. As such, it will be designed specifically to provide a sense of "uniqueness" that would not be likely to emerge from a game made using a mainstream engine. This is to be achieved by:
+This engine is meant to power an unannounced game that I'm developing. As such, it will be designed specifically to provide a sense of "uniqueness" that would not be likely to emerge from a game made using a mainstream engine. This is to be achieved by:
 
 - employing a number of uncommon/unorthodox rendering techniques
 - experimentation within the basic ideas of game engine design
 
-These ideas were born from the observation that video games - especially low-budget ones - are generally shaped by technical limitations as much as anything else.
+These ideas were born from the observation that video games - especially low-budget ones - are generally shaped by technical (and in particular, architectural) limitations as much as anything else.
 
 LPG Engine also aims to:
 

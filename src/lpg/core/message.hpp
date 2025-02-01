@@ -44,11 +44,11 @@ namespace lpg {
 
 
     struct PostSpawnMessage {
-        int32_t id;
+        EntityDescriptor descriptor;
     };
 
     struct PreKillMessage {
-        int32_t id;
+        EntityDescriptor descriptor;
     };
 
     struct UpdateMessage {
